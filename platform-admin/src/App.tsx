@@ -3,7 +3,7 @@ import React from "react";
 type Props = {};
 
 const App = (props: Props) => {
-  return <div>Platform Admin</div>;
+  return <div className="text-2xl text-red-500">Platform Admin</div>;
 };
 
 export default App;
