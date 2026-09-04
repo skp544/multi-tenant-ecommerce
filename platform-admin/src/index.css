@@ -46,6 +46,12 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Adding our own colors or gradients */
+  --color-auth-panel-from: var(--auth-panel-from);
+  --color-auth-panel-to: var(--auth-panel-to);
+  --color-auth-panel-foreground-muted: var(--auth-panel-foreground-muted);
+  --color-auth-panel-foreground-subtle: var(--auth-panel-foreground-subtle);
 }
 
 :root {
@@ -81,6 +87,12 @@
   --sidebar-accent-foreground: oklch(0.22 0.031 161.8);
   --sidebar-border: oklch(0.896 0.03 151.488);
   --sidebar-ring: oklch(0.515 0.11 158.338);
+
+  /* same for this */
+  --auth-panel-from: #06251a;
+  --auth-panel-to: #10543a;
+  --auth-panel-foreground-muted: #c7dccb;
+  --auth-panel-foreground-subtle: #8fb093;
 }
 
 .dark {

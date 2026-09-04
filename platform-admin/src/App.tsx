@@ -1,16 +1,10 @@
-import React from "react";
-import { Button } from "./components/ui/button";
+import Routers from "./routes";
 
-type Props = {};
-
-const App = (props: Props) => {
+const App = () => {
   return (
-    <div className="text-2xl text-red-500">
-      Platform Admin
-      <div>
-        <Button>Click Me</Button>
-      </div>
-    </div>
+    <main>
+      <Routers />
+    </main>
   );
 };
 
