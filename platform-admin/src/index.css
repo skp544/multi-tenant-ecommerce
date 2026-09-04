@@ -48,10 +48,10 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Adding our own colors or gradients */
-  --color-auth-panel-from: var(--auth-panel-from);
-  --color-auth-panel-to: var(--auth-panel-to);
-  --color-auth-panel-foreground-muted: var(--auth-panel-foreground-muted);
-  --color-auth-panel-foreground-subtle: var(--auth-panel-foreground-subtle);
+  --color-brand-panel-from: var(--brand-panel-from);
+  --color-brand-panel-to: var(--brand-panel-to);
+  --color-brand-panel-foreground-muted: var(--brand-panel-foreground-muted);
+  --color-brand-panel-foreground-subtle: var(--brand-panel-foreground-subtle);
 }
 
 :root {
@@ -89,10 +89,10 @@
   --sidebar-ring: oklch(0.515 0.11 158.338);
 
   /* same for this */
-  --auth-panel-from: #06251a;
-  --auth-panel-to: #10543a;
-  --auth-panel-foreground-muted: #c7dccb;
-  --auth-panel-foreground-subtle: #8fb093;
+  --brand-panel-from: #06251a;
+  --brand-panel-to: #10543a;
+  --brand-panel-foreground-muted: #c7dccb;
+  --brand-panel-foreground-subtle: #8fb093;
 }
 
 .dark {

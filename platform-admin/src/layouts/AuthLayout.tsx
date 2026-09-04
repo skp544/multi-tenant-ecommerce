@@ -5,7 +5,7 @@ const AuthLayout = () => {
   return (
     <div className="flex min-h-svh">
       {/* Left  */}
-      <div className="hidden sm:flex flex-col justify-between bg-linear-to-br from-auth-panel-from to-auth-panel-to lg:w-[40%] xl:w=[45%] p-12">
+      <div className="hidden sm:flex flex-col justify-between bg-linear-to-br from-brand-panel-from to-brand-panel-to lg:w-[40%] xl:w=[45%] p-12">
         <div className="flex items-center gap-3">
           <img
             src="/favicon.svg"
@@ -20,12 +20,12 @@ const AuthLayout = () => {
             Run every store on your marketplace from one place
           </h1>
 
-          <p className="mt-3.5 max-w-90 text-sm leading-5 text-auth-panel-foreground-muted">
+          <p className="mt-3.5 max-w-90 text-sm leading-5 text-brand-panel-foreground-muted">
             Tenants, catalog, commissions, delivery network and reporting -
             unified across every store on the platform
           </p>
         </div>
-        <p className="text-xs text-auth-panel-foreground-subtle">
+        <p className="text-xs text-brand-panel-foreground-subtle">
           &copy; {getCurrentYear()} Platform Admin. All rights reserved.
         </p>
       </div>
