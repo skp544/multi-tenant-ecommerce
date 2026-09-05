@@ -1,29 +1,40 @@
 import { Button } from "@/components/ui/button";
-import { useState, type SubmitEvent } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Link } from "react-router";
-import { ShieldCheckIcon } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { ArrowLeft, ShieldCheckIcon } from "lucide-react";
+import { useState, type SubmitEvent } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const ForgotPassword = () => {
+  const [email, setEmail] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    navigate("/auth/forgot-password/verify", { state: { email } });
   };
 
   return (
     <div className="w-full max-w-sm">
-      <h2 className="text-2xl font-bold">Sign In</h2>
+      <Link
+        to="/auth/login"
+        aria-label="Back to sign in"
+        className="mb-7 inline-flex text-foreground items-center gap-2"
+      >
+        <ArrowLeft className="size-5" />
+        Back
+      </Link>
+      <h2 className="text-2xl font-bold">Forgot Password</h2>
 
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Access the platform admin panel
+        Please enter the email address associated with your account. If it
+        matches our records, we will send you a 6-digit verification code that
+        you can use to securely reset your password.
       </p>
 
       <form className="mt-7" onSubmit={handleSubmit}>
@@ -44,30 +55,6 @@ const LoginPage = () => {
             />
           </Field>
 
-          <Field>
-            <div className="flex items-center justify-between">
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-
-              <Link
-                to="/auth/forgot-password"
-                className="text-xs font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
-            <PasswordInput
-              id="password"
-              placeholder="**********"
-              autoComplete="current-password"
-              className="h-11"
-              required
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
-              disabled={isSubmitting}
-            />
-          </Field>
-
           {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
           <Button
@@ -77,10 +64,10 @@ const LoginPage = () => {
           >
             {isSubmitting ? (
               <>
-                <Spinner className="size-4" /> <span>Signing In...</span>
+                <Spinner className="size-4" /> <span>Sending Code...</span>
               </>
             ) : (
-              "Sign In"
+              "Send Code"
             )}
           </Button>
         </FieldGroup>
@@ -94,4 +81,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default ForgotPassword;
