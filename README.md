@@ -13,6 +13,7 @@ A multi-tenant e-commerce platform, built as a monorepo with a NestJS backend an
 ### backend
 
 - [NestJS](https://nestjs.com/) API server
+- [Prisma ORM](https://www.prisma.io/) with PostgreSQL
 - Vitest for unit and e2e tests
 - oxlint + Prettier for linting/formatting
 
@@ -27,9 +28,17 @@ A multi-tenant e-commerce platform, built as a monorepo with a NestJS backend an
 
 ### Backend
 
+Requires a running PostgreSQL instance. Set `DATABASE_URL` in `backend/.env`:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=public"
+```
+
 ```bash
 cd backend
 npm install
+npx prisma generate
+npx prisma migrate dev
 npm run start:dev
 ```
 
