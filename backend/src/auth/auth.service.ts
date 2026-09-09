@@ -43,7 +43,7 @@ export class AuthService {
     const token = this.issueTokenPair(user, context);
 
     // access token and refresh token
-    // response
+    return token;
   }
 
   async issueTokenPair(user: User, context: LoginContext = {}) {
