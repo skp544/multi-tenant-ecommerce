@@ -1,12 +1,15 @@
+import { authApi, type LoginPayload } from "@/api/auth";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { storage } from "@/lib/storage";
 import type { AsyncStatus } from "@/types/common";
-import type { User } from "@/types/user";
-import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import type { User, UserType } from "@/types/user";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  userType: UserType | null;
   status: AsyncStatus;
   error: string | null;
 }
@@ -15,9 +18,31 @@ const initialState: AuthState = {
   user: null,
   accessToken: null,
   refreshToken: null,
+  userType: "PLATFORM_ADMIN",
   status: "idle",
   error: null,
 };
+
+export const fetchLogin = createAsyncThunk(
+  "auth/login",
+  async (payload: LoginPayload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.login(payload);
+
+      if (!response.data) {
+        return rejectWithValue(response.message);
+      }
+
+      const { accessToken, refreshToken, userType } = response.data;
+
+      storage.setToken(accessToken, refreshToken);
+
+      return { accessToken, refreshToken, userType };
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Could not sign in"));
+    }
+  },
+);
 
 export const authSlice = createSlice({
   name: "auth",
@@ -27,7 +52,26 @@ export const authSlice = createSlice({
       state.error = null;
     },
   },
-  extraReducers: (builder) => {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchLogin.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchLogin.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.userType = action.payload.userType;
+      })
+      .addCase(fetchLogin.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.userType = "PLATFORM_ADMIN";
+      });
+  },
 });
 
 export default authSlice.reducer;
