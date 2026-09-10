@@ -40,10 +40,10 @@ export class AuthService {
       throw new ForbiddenException('Account is not active.');
     }
 
-    const token = this.issueTokenPair(user, context);
+    const token = await this.issueTokenPair(user, context);
 
     // access token and refresh token
-    return token;
+    return { ...token, user_type: user.userType };
   }
 
   async issueTokenPair(user: User, context: LoginContext = {}) {
