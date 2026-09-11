@@ -123,4 +123,20 @@ export class AuthService {
       throw new BadRequestException('Invalid email or password.');
     }
   }
+
+  async me(userId: string) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException('Account not found.');
+    }
+
+    const {
+      passwordHash: _passwordHash,
+      twoFactorSecret: _twoFactorSecret,
+      ...safeUser
+    } = user;
+
+    return safeUser;
+  }
 }

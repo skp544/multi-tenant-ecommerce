@@ -44,6 +44,23 @@ export const fetchLogin = createAsyncThunk(
   },
 );
 
+export const fetchMe = createAsyncThunk(
+  "auth/me",
+  async (_payload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.me();
+
+      if (!response.data) {
+        return rejectWithValue(response.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -70,6 +87,23 @@ export const authSlice = createSlice({
         state.accessToken = null;
         state.refreshToken = null;
         state.userType = "PLATFORM_ADMIN";
+      });
+
+    // current user details
+    builder
+      .addCase(fetchMe.pending, (state) => {
+        state.status = "loading";
+        state.user = null;
+        state.error = null;
+      })
+      .addCase(fetchMe.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+      })
+      .addCase(fetchMe.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+        state.user = null;
       });
   },
 });
