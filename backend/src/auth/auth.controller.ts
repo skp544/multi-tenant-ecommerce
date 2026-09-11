@@ -29,7 +29,7 @@ export class AuthController {
   @Get('/me') // /auth/me
   async me(@CurrentUser() user: JwtAccessPayload) {
     console.log(user);
-    const data = await this.authService.me(user.userId);
+    const data = await this.authService.inme(user.userId);
     return data;
   }
 }

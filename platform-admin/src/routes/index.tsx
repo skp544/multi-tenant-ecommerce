@@ -1,3 +1,4 @@
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 import AuthLayout from "@/layouts/AuthLayout";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -21,8 +22,10 @@ export default function Routers() {
 
       {/* Dashboard */}
 
-      <Route path="dashboard" element={<DashboardLayout />}>
-        <Route index element={<DashboardPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardPage />} />
+        </Route>
       </Route>
     </Routes>
   );

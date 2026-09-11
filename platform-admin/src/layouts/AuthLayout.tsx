@@ -1,7 +1,18 @@
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { getCurrentYear } from "@/lib/utils";
+import { useAppSelector } from "@/hooks/use-store";
+import { useEffect } from "react";
 
 const AuthLayout = () => {
+  const { accessToken } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (accessToken) {
+      navigate("/dashboard");
+    }
+  }, [accessToken, navigate]);
+
   return (
     <div className="flex min-h-svh">
       {/* Left  */}

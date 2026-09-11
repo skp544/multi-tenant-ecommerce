@@ -16,8 +16,8 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  accessToken: null,
-  refreshToken: null,
+  accessToken: storage.getAccessToken(),
+  refreshToken: storage.getRefreshToken(),
   userType: "PLATFORM_ADMIN",
   status: "idle",
   error: null,
@@ -99,6 +99,7 @@ export const authSlice = createSlice({
       .addCase(fetchMe.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.user = action.payload;
+        state.userType = action.payload.userType;
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.status = "failed";
