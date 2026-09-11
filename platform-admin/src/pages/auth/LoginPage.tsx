@@ -3,19 +3,31 @@ import { useState, type SubmitEvent } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ShieldCheckIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useAppDispatch, useAppSelector } from "@/hooks/use-store";
+import { fetchLogin } from "@/store/auth/auth.slice";
 
 const LoginPage = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { status, error } = useAppSelector((state) => state.auth);
+  const isSubmitting = status === "loading";
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    try {
+      await dispatch(fetchLogin({ email, password })).unwrap();
+      navigate("/dashboard");
+    } catch {
+      // fetchLogin.rejected already stored the message in state.auth.error
+    }
   };
 
   return (

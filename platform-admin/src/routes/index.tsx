@@ -1,8 +1,10 @@
 import AuthLayout from "@/layouts/AuthLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import LoginPage from "@/pages/auth/LoginPage";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import VerifyForgotOtp from "@/pages/auth/VerifyForgotOtp";
+import DashboardPage from "@/pages/dashboard/DashboardPage";
 import { Route, Routes } from "react-router";
 
 export default function Routers() {
@@ -18,6 +20,10 @@ export default function Routers() {
       </Route>
 
       {/* Dashboard */}
+
+      <Route path="dashboard" element={<DashboardLayout />}>
+        <Route index element={<DashboardPage />} />
+      </Route>
     </Routes>
   );
 }

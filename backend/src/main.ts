@@ -14,6 +14,10 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+    origin: ['http://localhost:3002'],
+  });
+
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 

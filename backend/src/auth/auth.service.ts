@@ -40,6 +40,9 @@ export class AuthService {
       throw new ForbiddenException('Account is not active.');
     }
 
+    // check password
+    await this.checkPasswordMatchWithHash(user, loginDto.password);
+
     const token = await this.issueTokenPair(user, context);
 
     // access token and refresh token
@@ -106,5 +109,18 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async checkPasswordMatchWithHash(
+    user: User,
+    password: string,
+  ): Promise<void> {
+    const hash = user?.passwordHash;
+
+    const matches = await bcrypt.compare(password, hash);
+
+    if (!matches) {
+      throw new BadRequestException('Invalid email or password.');
+    }
   }
 }
