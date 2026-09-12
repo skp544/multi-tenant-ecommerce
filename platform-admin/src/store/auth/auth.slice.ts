@@ -61,6 +61,23 @@ export const fetchMe = createAsyncThunk(
   },
 );
 
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_payload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.logout();
+
+      if (!response.success) {
+        return rejectWithValue(response.message);
+      }
+
+      storage.clear();
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -105,6 +122,24 @@ export const authSlice = createSlice({
         state.status = "failed";
         state.error = action.payload as string;
         state.user = null;
+      });
+
+    // logout
+    builder
+      .addCase(logoutUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.status = "idle";
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.user = null;
+        state.userType = "PLATFORM_ADMIN";
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.status = "idle";
+        state.error = action.payload as string;
       });
   },
 });

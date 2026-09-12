@@ -15,6 +15,8 @@ export type LoginResponse = ApiResponse<{
 
 export type MeResponse = ApiResponse<User>;
 
+export type LogoutResponse = ApiResponse<null>;
+
 export const authApi = {
   login: async (payload: LoginPayload) => {
     return client
@@ -24,5 +26,9 @@ export const authApi = {
 
   me: async () => {
     return client.get<MeResponse>("/auth/me").then((res) => res.data);
+  },
+
+  logout: async () => {
+    return client.post<LogoutResponse>("/auth/logout").then((res) => res.data);
   },
 };

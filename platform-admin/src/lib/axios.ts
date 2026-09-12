@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { storage } from "./storage";
+import type { ApiResponse } from "@/types/common";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -19,11 +20,10 @@ interface RetriableConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-interface RefreshTokenResponse {
-  success: boolean;
-  message?: string;
-  data: { accessToken: string; refreshToken: string };
-}
+export type RefreshTokenResponse = ApiResponse<{
+  accessToken: string;
+  refreshToken: string;
+}>;
 
 async function fetchRefreshToken(): Promise<string> {
   const refreshToken = storage.getRefreshToken();
@@ -33,12 +33,16 @@ async function fetchRefreshToken(): Promise<string> {
   }
 
   const response = await axios.post<RefreshTokenResponse>(
-    `${baseUrl}/auth/refresh-token`,
+    `${baseUrl}/auth/refresh`,
     { refreshToken },
   );
 
   if (!response.data.success) {
     throw new Error(response.data.message ?? "Failed to refresh token");
+  }
+
+  if (!response.data.data) {
+    throw new Error("Failed to refresh token");
   }
 
   const { accessToken, refreshToken: newRefreshToken } = response.data.data;

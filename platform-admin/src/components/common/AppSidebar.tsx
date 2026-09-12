@@ -10,21 +10,26 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { SIDEBAR_NAV } from "@/constants/sidebar-nav";
-import { useAppSelector } from "@/hooks/use-store";
+import { useAppDispatch, useAppSelector } from "@/hooks/use-store";
 import { cn } from "cn";
 import { useLocation, useNavigate } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { LogOut } from "lucide-react";
+import { logoutUser } from "@/store/auth/auth.slice";
 
 const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
 
   const user = useAppSelector((state) => state.auth.user);
 
   const avatarName = `${user?.fullName?.split(" ")[0][0] ?? ""}${user?.fullName?.split(" ")[1][0] ?? ""}`;
 
-  console.log(avatarName);
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    navigate("/auth/login");
+  };
 
   return (
     <Sidebar className="bg-muted-foreground">
@@ -91,7 +96,11 @@ const AppSidebar = () => {
             </div>
           </div>
 
-          <button className="shrink-0 rounded-md text-accent hover:bg-white/10 hover:text-white cursor-pointer px-1 py-2">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="shrink-0 rounded-md text-accent hover:bg-white/10 hover:text-white cursor-pointer px-1 py-2"
+          >
             <LogOut className="size-4" />
           </button>
         </div>
