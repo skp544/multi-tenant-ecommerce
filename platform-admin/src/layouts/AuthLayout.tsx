@@ -19,9 +19,9 @@ const AuthLayout = () => {
       <div className="hidden sm:flex flex-col justify-between bg-linear-to-br from-brand-panel-from to-brand-panel-to lg:w-[40%] xl:w=[45%] p-12">
         <div className="flex items-center gap-3">
           <img
-            src="/favicon.svg"
+            src="/logos/platform-logo.png"
             alt="Platform Admin logo"
-            className="size-12 rounded-xl bg-white/90 p-1.5 shadow-lg shadow-black/20"
+            className="size-12 rounded-xl shadow-lg shadow-black/20"
           />
           <span className="text-base font-bold text-white">Platform Admin</span>
         </div>
