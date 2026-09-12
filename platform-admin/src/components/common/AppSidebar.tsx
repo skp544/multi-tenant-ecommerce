@@ -28,7 +28,6 @@ const AppSidebar = () => {
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
-    navigate("/auth/login");
   };
 
   return (

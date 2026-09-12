@@ -8,6 +8,7 @@ import VerifyForgotOtp from "@/pages/auth/VerifyForgotOtp";
 import CommissionPayouts from "@/pages/dashboard/CommissionPayouts";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import SellersPage from "@/pages/dashboard/SellersPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 import { Route, Routes } from "react-router";
 
 export default function Routers() {
@@ -31,6 +32,10 @@ export default function Routers() {
           <Route path="commission-payouts" element={<CommissionPayouts />} />
         </Route>
       </Route>
+
+      {/* Fallback */}
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
