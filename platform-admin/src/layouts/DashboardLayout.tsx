@@ -25,8 +25,8 @@ const DashboardLayout = () => {
       <AppSidebar />
 
       <SidebarInset>
-        <main>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <main className="bg-accent/50 ">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
             {/* LEFT */}
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -48,7 +48,7 @@ const DashboardLayout = () => {
                 <PopoverTrigger>
                   <Avatar className="cursor-pointer">
                     <AvatarImage src={user?.profileImage} />
-                    <AvatarFallback className="bg-[#9fe870] font-semibold text-accent-foreground">
+                    <AvatarFallback className="bg-sidebar-active font-semibold text-accent-foreground">
                       {getAvatarName(user?.fullName)}
                     </AvatarFallback>
                   </Avatar>
