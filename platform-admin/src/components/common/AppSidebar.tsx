@@ -16,6 +16,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { LogOut } from "lucide-react";
 import { logoutUser } from "@/store/auth/auth.slice";
+import { getAvatarName } from "@/lib";
 
 const AppSidebar = () => {
   const navigate = useNavigate();
@@ -23,8 +24,6 @@ const AppSidebar = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((state) => state.auth.user);
-
-  const avatarName = `${user?.fullName?.split(" ")[0][0] ?? ""}${user?.fullName?.split(" ")[1][0] ?? ""}`;
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
@@ -80,7 +79,7 @@ const AppSidebar = () => {
             <div>
               <Avatar>
                 <AvatarImage src={user?.profileImage} />
-                <AvatarFallback>{avatarName}</AvatarFallback>
+                <AvatarFallback>{getAvatarName(user?.fullName)}</AvatarFallback>
               </Avatar>
             </div>
 
