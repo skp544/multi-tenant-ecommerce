@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { LoginDTO } from './dto/login.dto.js';
 import { UsersService } from '../users/users.service.js';
@@ -138,5 +139,76 @@ export class AuthService {
     } = user;
 
     return safeUser;
+  }
+
+  async refresh(refreshToken: string, context: LoginContext = {}) {
+    const decoded = this.verifyRefreshToken(refreshToken);
+
+    const session = await this.prisma.userSession.findUnique({
+      where: {
+        id: decoded.sessionId,
+      },
+    });
+
+    if (!session || session.revokedAt || session.expiresAt < new Date()) {
+      throw new UnauthorizedException('Session expired.');
+    }
+
+    const matches = await bcrypt.compare(
+      refreshToken,
+      session.refreshTokenHash,
+    );
+
+    if (!matches) {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
+
+    const user = await this.usersService.findById(decoded.userId);
+
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    await this.prisma.userSession.update({
+      where: {
+        id: session.id,
+      },
+      data: { revokedAt: new Date() },
+    });
+
+    return this.issueTokenPair(user, {
+      ipAddress: context?.ipAddress,
+    });
+  }
+
+  private verifyRefreshToken(refreshToken: string): RefreshTokenPayload {
+    try {
+      return this.jwt.verify<RefreshTokenPayload>(refreshToken, {
+        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch (err) {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
+  }
+
+  async revokeSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.prisma.userSession.findUnique({
+      where: {
+        id: sessionId,
+      },
+    });
+
+    if (!session || session.userId !== userId) {
+      throw new BadRequestException('Session not found.');
+    }
+
+    await this.prisma.userSession.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
   }
 }

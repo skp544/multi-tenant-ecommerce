@@ -13,6 +13,7 @@ import { LoginDTO } from './dto/login.dto.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import type { JwtAccessPayload } from './types/jwt-payload.types.js';
+import { RefreshDTO } from './dto/refresht.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -30,5 +31,19 @@ export class AuthController {
   async me(@CurrentUser() user: JwtAccessPayload) {
     const data = await this.authService.me(user.userId);
     return data;
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(@Body() dto: RefreshDTO, @Ip() ipAddress: string) {
+    return this.authService.refresh(dto.refreshToken, { ipAddress });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentUser() user: JwtAccessPayload) {
+    await this.authService.revokeSession(user.userId, user.sid);
+    return { message: 'Logged out successfully' };
   }
 }
