@@ -28,8 +28,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('/me') // /auth/me
   async me(@CurrentUser() user: JwtAccessPayload) {
-    console.log(user);
-    const data = await this.authService.inme(user.userId);
+    const data = await this.authService.me(user.userId);
     return data;
   }
 }
+``;
