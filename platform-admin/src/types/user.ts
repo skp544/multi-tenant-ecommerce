@@ -12,8 +12,8 @@ export interface User {
   userType: UserType;
   status: UserStatus;
   twoFactorEnabled: boolean;
+  profileImage?: string;
   createdAt: string;
   updatedAt: string;
 }
-
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";

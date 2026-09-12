@@ -10,12 +10,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { SIDEBAR_NAV } from "@/constants/sidebar-nav";
+import { useAppSelector } from "@/hooks/use-store";
 import { cn } from "cn";
 import { useLocation, useNavigate } from "react-router";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { LogOut } from "lucide-react";
 
 const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const user = useAppSelector((state) => state.auth.user);
+
+  const avatarName = `${user?.fullName?.split(" ")[0][0] ?? ""}${user?.fullName?.split(" ")[1][0] ?? ""}`;
+
+  console.log(avatarName);
 
   return (
     <Sidebar className="bg-muted-foreground">
@@ -33,6 +42,7 @@ const AppSidebar = () => {
           </div>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -58,7 +68,34 @@ const AppSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+
+      <SidebarFooter>
+        <div className="flex items-center gap-1.5 rounded-md bg-white/6 px-1 py-3">
+          <div className="flex flex-1 items-center gap-2.5 ">
+            {/* {image or name} => SKP */}
+            <div>
+              <Avatar>
+                <AvatarImage src={user?.profileImage} />
+                <AvatarFallback>{avatarName}</AvatarFallback>
+              </Avatar>
+            </div>
+
+            {/* full name */}
+            <div className="min-w-0 flex-1 flex flex-col">
+              <span className="truncate text-sm font-semibold text-white">
+                {user?.fullName}
+              </span>
+              <span className="truncate text-xs text-accent">
+                {user?.email}
+              </span>
+            </div>
+          </div>
+
+          <button className="shrink-0 rounded-md text-accent hover:bg-white/10 hover:text-white cursor-pointer px-1 py-2">
+            <LogOut className="size-4" />
+          </button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };
