@@ -1,4 +1,5 @@
 import TitleHeading from "@/components/common/TitleHeading";
+import ProfileUpdate from "@/components/my-account/ProfileUpdate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,7 +32,7 @@ const MyAccountPage = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-semibold text-lg">
+                    <div className="font-semibold text-lg truncate">
                       {user?.fullName}
                     </div>
                     <div className="bg-primary/20 text-primary font-semibold px-3 py-1 text-xs rounded-full w-fit">
@@ -41,9 +42,7 @@ const MyAccountPage = () => {
                 </div>
 
                 <div>
-                  <Button type="button" variant={"outline"}>
-                    Edit Profile
-                  </Button>
+                  <ProfileUpdate user={user} />
                 </div>
               </div>
 
