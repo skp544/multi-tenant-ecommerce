@@ -18,6 +18,7 @@ const ProfileUpdate = ({ user }: Props) => {
   const [data, setData] = useState<User>(user!);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setData(user!);
@@ -44,6 +45,7 @@ const ProfileUpdate = ({ user }: Props) => {
       ).unwrap();
 
       toast.success(result.message);
+      setOpen(false);
     } catch (error) {
       toast.error(error as string);
     } finally {
@@ -52,7 +54,7 @@ const ProfileUpdate = ({ user }: Props) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" variant={"outline"} className="cursor-pointer">
           Edit Profile
