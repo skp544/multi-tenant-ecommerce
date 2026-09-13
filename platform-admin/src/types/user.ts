@@ -4,6 +4,13 @@ export type UserType =
   | "PLATFORM_ADMIN"
   | "DELIVERY_AGENT";
 
+export interface IRole {
+  id: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -13,6 +20,7 @@ export interface User {
   status: UserStatus;
   twoFactorEnabled: boolean;
   profileImage?: string;
+  role?: IRole;
   createdAt: string;
   updatedAt: string;
 }

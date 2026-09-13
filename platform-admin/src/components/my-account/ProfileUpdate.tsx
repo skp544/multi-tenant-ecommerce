@@ -114,7 +114,7 @@ const ProfileUpdate = ({ user }: Props) => {
 
           <div className="col-span-2 mt-4">
             <Button className="mx-auto block h-10" disabled={isSubmitting}>
-              Update Profile
+              {isSubmitting ? "Updating..." : "Update Profile"}
             </Button>
           </div>
         </form>
