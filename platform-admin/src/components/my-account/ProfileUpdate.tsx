@@ -7,6 +7,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useAppDispatch } from "@/hooks/use-store";
 import { updateUser } from "@/store/auth/auth.slice";
+import { toast } from "sonner";
 
 type Props = {
   user?: User | null;
@@ -34,13 +35,17 @@ const ProfileUpdate = ({ user }: Props) => {
     setIsSubmitting(true);
 
     try {
-      await dispatch(
+      const result = await dispatch(
         updateUser({
           fullName: data.fullName,
           phone: data.phone ?? null,
           profileImage: data.profileImage ?? null,
         }),
       ).unwrap();
+
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(error as string);
     } finally {
       setIsSubmitting(false);
     }

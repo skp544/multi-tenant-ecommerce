@@ -8,6 +8,7 @@ import { ShieldCheckIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAppDispatch, useAppSelector } from "@/hooks/use-store";
 import { fetchLogin } from "@/store/auth/auth.slice";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -16,17 +17,18 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { status, error } = useAppSelector((state) => state.auth);
+  const { status } = useAppSelector((state) => state.auth);
   const isSubmitting = status === "loading";
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
-      await dispatch(fetchLogin({ email, password })).unwrap();
+      const result = await dispatch(fetchLogin({ email, password })).unwrap();
+      toast.success(result.message);
       navigate("/dashboard");
-    } catch {
-      // fetchLogin.rejected already stored the message in state.auth.error
+    } catch (error) {
+      toast.error(error as string);
     }
   };
 
@@ -79,8 +81,6 @@ const LoginPage = () => {
               disabled={isSubmitting}
             />
           </Field>
-
-          {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
           <Button
             type="submit"

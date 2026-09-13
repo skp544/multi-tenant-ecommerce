@@ -41,7 +41,7 @@ export const fetchLogin = createAsyncThunk(
 
       storage.setToken(accessToken, refreshToken);
 
-      return { accessToken, refreshToken, userType };
+      return { accessToken, refreshToken, userType, message: response.message };
     } catch (error) {
       return rejectWithValue(getApiErrorMessage(error, "Could not sign in"));
     }
@@ -75,7 +75,7 @@ export const updateUser = createAsyncThunk(
         return rejectWithValue(response.message);
       }
 
-      return response.data;
+      return { user: response.data, message: response.message };
     } catch (error) {
       return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
     }
@@ -164,19 +164,9 @@ export const authSlice = createSlice({
       });
 
     // update user
-    builder
-      .addCase(updateUser.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(updateUser.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.user = action.payload;
-      })
-      .addCase(updateUser.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload as string;
-      });
+    builder.addCase(updateUser.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+    });
   },
 });
 
