@@ -1,4 +1,8 @@
-import { authApi, type LoginPayload } from "@/api/auth";
+import {
+  authApi,
+  type IUpdateUserPayload,
+  type LoginPayload,
+} from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { storage } from "@/lib/storage";
 import type { AsyncStatus } from "@/types/common";
@@ -49,6 +53,23 @@ export const fetchMe = createAsyncThunk(
   async (_payload, { rejectWithValue }) => {
     try {
       const response = await authApi.me();
+
+      if (!response.data) {
+        return rejectWithValue(response.message);
+      }
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
+    }
+  },
+);
+
+export const updateUser = createAsyncThunk(
+  "users/update",
+  async (payload: IUpdateUserPayload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.updateUser(payload);
 
       if (!response.data) {
         return rejectWithValue(response.message);
@@ -139,6 +160,21 @@ export const authSlice = createSlice({
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.status = "idle";
+        state.error = action.payload as string;
+      });
+
+    // update user
+    builder
+      .addCase(updateUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.status = "failed";
         state.error = action.payload as string;
       });
   },

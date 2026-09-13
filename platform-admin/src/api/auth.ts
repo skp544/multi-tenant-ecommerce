@@ -7,6 +7,12 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface IUpdateUserPayload {
+  fullName: string;
+  phone: string | null;
+  profileImage: string | null;
+}
+
 export type LoginResponse = ApiResponse<{
   accessToken: string;
   refreshToken: string;
@@ -26,6 +32,10 @@ export const authApi = {
 
   me: async () => {
     return client.get<MeResponse>("/auth/me").then((res) => res.data);
+  },
+
+  updateUser: async (payload: IUpdateUserPayload) => {
+    return client.put<MeResponse>("/users/me", payload).then((res) => res.data);
   },
 
   logout: async () => {

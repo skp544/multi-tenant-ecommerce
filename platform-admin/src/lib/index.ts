@@ -1,3 +1,4 @@
 export const getAvatarName = (fullName: string | undefined) => {
-  return `${fullName?.split(" ")[0][0] ?? ""}${fullName?.split(" ")[1][0] ?? ""}`;
+  const [first, second] = fullName?.trim().split(" ") ?? [];
+  return `${first?.[0] ?? ""}${second?.[0] ?? ""}`;
 };

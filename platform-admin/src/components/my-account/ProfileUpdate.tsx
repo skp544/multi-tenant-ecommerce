@@ -5,12 +5,15 @@ import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import TitleHeading from "../common/TitleHeading";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { useAppDispatch } from "@/hooks/use-store";
+import { updateUser } from "@/store/auth/auth.slice";
 
 type Props = {
   user?: User | null;
 };
 
 const ProfileUpdate = ({ user }: Props) => {
+  const dispatch = useAppDispatch();
   const [data, setData] = useState<User>(user!);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,8 +28,22 @@ const ProfileUpdate = ({ user }: Props) => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setIsSubmitting(true);
+
+    try {
+      await dispatch(
+        updateUser({
+          fullName: data.fullName,
+          phone: data.phone ?? null,
+          profileImage: data.profileImage ?? null,
+        }),
+      ).unwrap();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
