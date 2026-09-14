@@ -4,8 +4,14 @@ import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { PasswordInput } from "../ui/PasswordInput";
+import { useAppDispatch } from "@/hooks/use-store";
+import { changePassword } from "@/store/auth/auth.slice";
+import { toast } from "sonner";
 
 const ChangePassword = () => {
+  const dispatch = useAppDispatch();
+
+  const [open, setOpen] = useState(false);
   const [data, setData] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -18,11 +24,11 @@ const ChangePassword = () => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (data.newPassword.length < 6) {
-      setError("Password must be at least 8 characters");
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -32,10 +38,25 @@ const ChangePassword = () => {
     }
 
     setError("");
+
+    setIsSubmitting(true);
+    try {
+      const result = await dispatch(
+        changePassword({ password: data.newPassword }),
+      ).unwrap();
+
+      toast.success(result.message);
+      setData({ newPassword: "", confirmPassword: "" });
+      setOpen(false);
+    } catch (error) {
+      toast.error(error as string);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" variant={"outline"} className="cursor-pointer">
           Change Password

@@ -1,6 +1,7 @@
 import { client } from "@/lib/axios";
 import type { User, UserType } from "@/types/user";
 import type { ApiResponse } from "@/types/common";
+import ChangePassword from "@/components/my-account/ChangePassword";
 
 export interface LoginPayload {
   email: string;
@@ -13,6 +14,10 @@ export interface IUpdateUserPayload {
   profileImage: string | null;
 }
 
+export interface IChangePassword {
+  password: string;
+}
+
 export type LoginResponse = ApiResponse<{
   accessToken: string;
   refreshToken: string;
@@ -21,7 +26,7 @@ export type LoginResponse = ApiResponse<{
 
 export type MeResponse = ApiResponse<User>;
 
-export type LogoutResponse = ApiResponse<null>;
+export type SuccessResponse = ApiResponse<null>;
 
 export const authApi = {
   login: async (payload: LoginPayload) => {
@@ -38,7 +43,13 @@ export const authApi = {
     return client.put<MeResponse>("/users/me", payload).then((res) => res.data);
   },
 
+  changePassword: async (payload: IChangePassword) => {
+    return client
+      .put<SuccessResponse>("/users/change-password", payload)
+      .then((res) => res.data);
+  },
+
   logout: async () => {
-    return client.post<LogoutResponse>("/auth/logout").then((res) => res.data);
+    return client.post<SuccessResponse>("/auth/logout").then((res) => res.data);
   },
 };

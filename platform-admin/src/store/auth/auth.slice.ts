@@ -1,5 +1,6 @@
 import {
   authApi,
+  type IChangePassword,
   type IUpdateUserPayload,
   type LoginPayload,
 } from "@/api/auth";
@@ -77,7 +78,24 @@ export const updateUser = createAsyncThunk(
 
       return { user: response.data, message: response.message };
     } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
+      return rejectWithValue(getApiErrorMessage(error, "Failed to update"));
+    }
+  },
+);
+
+export const changePassword = createAsyncThunk(
+  "users/change-password",
+  async (payload: IChangePassword, { rejectWithValue }) => {
+    try {
+      const response = await authApi.changePassword(payload);
+
+      if (!response.success) {
+        return rejectWithValue(response.message);
+      }
+
+      return { message: response.message };
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to update"));
     }
   },
 );
