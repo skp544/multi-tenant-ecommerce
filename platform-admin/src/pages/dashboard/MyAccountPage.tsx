@@ -1,8 +1,8 @@
 import TitleHeading from "@/components/common/TitleHeading";
 import ChangePassword from "@/components/my-account/ChangePassword";
 import ProfileUpdate from "@/components/my-account/ProfileUpdate";
+import TwoFactorAuthentication from "@/components/my-account/TwoFactorAuthentication";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -116,7 +116,7 @@ const MyAccountPage = () => {
               </div>
             </div>
             <div className="flex gap-4 items-center">
-              <Badge>Enabled</Badge>
+              <TwoFactorAuthentication user={user!} />
               <Button variant={"outline"}>Disable</Button>
             </div>
           </div>
