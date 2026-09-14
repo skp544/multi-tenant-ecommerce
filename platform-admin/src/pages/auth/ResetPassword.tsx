@@ -120,6 +120,7 @@ const ResetPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               value={confirmPassword}
               disabled={isSubmitting}
+              aria-invalid={misMatch}
             />
             {misMatch && (
               <p className="mt-3 text-sm text-destructive">

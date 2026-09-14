@@ -17,7 +17,10 @@ const ChangePassword = () => {
     confirmPassword: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,17 +30,21 @@ const ChangePassword = () => {
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const nextErrors: typeof errors = {};
+
     if (data.newPassword.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
+      nextErrors.newPassword = "Password must be at least 6 characters";
     }
 
     if (data.newPassword !== data.confirmPassword) {
-      setError("Passwords do not match");
-      return;
+      nextErrors.confirmPassword = "Passwords do not match";
     }
 
-    setError("");
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -47,6 +54,7 @@ const ChangePassword = () => {
 
       toast.success(result.message);
       setData({ newPassword: "", confirmPassword: "" });
+      setErrors({});
       setOpen(false);
     } catch (error) {
       toast.error(error as string);
@@ -82,7 +90,13 @@ const ChangePassword = () => {
               onChange={handleChange}
               value={data.newPassword}
               disabled={isSubmitting}
+              aria-invalid={!!errors.newPassword}
             />
+            {errors.newPassword && (
+              <p className="text-sm text-destructive">
+                {errors.newPassword}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -95,13 +109,14 @@ const ChangePassword = () => {
               onChange={handleChange}
               value={data.confirmPassword}
               disabled={isSubmitting}
-              aria-invalid={!!error}
+              aria-invalid={!!errors.confirmPassword}
             />
+            {errors.confirmPassword && (
+              <p className="text-sm text-destructive">
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
-
-          {error && (
-            <p className="col-span-2 text-sm text-destructive">{error}</p>
-          )}
 
           <div className="col-span-2 mt-4">
             <Button className="mx-auto block h-10" disabled={isSubmitting}>

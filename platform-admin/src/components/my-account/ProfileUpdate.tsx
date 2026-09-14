@@ -19,6 +19,11 @@ const ProfileUpdate = ({ user }: Props) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+  const [errors, setErrors] = useState<{
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  }>({});
 
   useEffect(() => {
     setData(user!);
@@ -33,6 +38,26 @@ const ProfileUpdate = ({ user }: Props) => {
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const nextErrors: typeof errors = {};
+
+    if (!data.fullName?.trim()) {
+      nextErrors.fullName = "Full name is required";
+    }
+
+    if (!data.email?.trim()) {
+      nextErrors.email = "Email is required";
+    }
+
+    if (!data.phone?.trim()) {
+      nextErrors.phone = "Phone is required";
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -45,6 +70,7 @@ const ProfileUpdate = ({ user }: Props) => {
       ).unwrap();
 
       toast.success(result.message);
+      setErrors({});
       setOpen(false);
     } catch (error) {
       toast.error(error as string);
@@ -81,7 +107,11 @@ const ProfileUpdate = ({ user }: Props) => {
               onChange={handleChange}
               required
               disabled={isSubmitting}
+              aria-invalid={!!errors.fullName}
             />
+            {errors.fullName && (
+              <p className="text-sm text-destructive">{errors.fullName}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -95,7 +125,11 @@ const ProfileUpdate = ({ user }: Props) => {
               onChange={handleChange}
               required
               disabled={isSubmitting}
+              aria-invalid={!!errors.email}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="phone">Phone</Label>
@@ -109,7 +143,11 @@ const ProfileUpdate = ({ user }: Props) => {
               onChange={handleChange}
               required
               disabled={isSubmitting}
+              aria-invalid={!!errors.phone}
             />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone}</p>
+            )}
           </div>
 
           <div className="col-span-2 mt-4">
