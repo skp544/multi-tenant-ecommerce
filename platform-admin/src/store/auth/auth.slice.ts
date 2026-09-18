@@ -117,6 +117,25 @@ export const logoutUser = createAsyncThunk(
   },
 );
 
+export const generate2FAOtp = createAsyncThunk(
+  "auth/2fa-generate-otp",
+  async (_payload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.twoFAGenerateOtp();
+
+      if (!response.success) {
+        return rejectWithValue(response.message);
+      }
+
+      return { message: response.message };
+    } catch (error) {
+      return rejectWithValue(
+        getApiErrorMessage(error, "Failed to generate otp"),
+      );
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,

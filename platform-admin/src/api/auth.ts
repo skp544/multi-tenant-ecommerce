@@ -52,4 +52,10 @@ export const authApi = {
   logout: async () => {
     return client.post<SuccessResponse>("/auth/logout").then((res) => res.data);
   },
+
+  twoFAGenerateOtp: async () => {
+    return client
+      .post<SuccessResponse>("/auth/2fa-generate-otp")
+      .then((res) => res.data);
+  },
 };

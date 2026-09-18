@@ -117,7 +117,6 @@ const MyAccountPage = () => {
             </div>
             <div className="flex gap-4 items-center">
               <TwoFactorAuthentication user={user!} />
-              <Button variant={"outline"}>Disable</Button>
             </div>
           </div>
         </Card>
