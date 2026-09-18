@@ -222,7 +222,7 @@ export class AuthService {
     });
   }
 
-  async sendEnable2FAOtp(userId: string) {
+  async send2FAOtp(userId: string) {
     // Checking user exists
 
     const user = await this.prisma.user.findUnique({
@@ -233,12 +233,6 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException('User not found.');
-    }
-
-    if (user.twoFactorEnabled) {
-      throw new BadRequestException(
-        'Two-factor authentication is already enabled.',
-      );
     }
 
     // Blocking repeated requests
@@ -294,7 +288,7 @@ export class AuthService {
     }
   }
 
-  async verify2FAOtp(userId: string, otp: string) {
+  async verify2FAOtp(userId: string, otp: string, enable: boolean) {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -305,9 +299,9 @@ export class AuthService {
       throw new BadRequestException('User not found.');
     }
 
-    if (user.twoFactorEnabled) {
+    if (user.twoFactorEnabled === enable) {
       throw new BadRequestException(
-        'Two-factor authentication is already enabled.',
+        `Two-factor authentication is already ${enable ? 'enabled' : 'disabled'}.`,
       );
     }
 
@@ -352,22 +346,21 @@ export class AuthService {
       throw new BadRequestException('Invalid OTP.');
     }
 
-    await this.prisma.twoFactorOtp.update({
-      where: {
-        id: otpRecord.id,
-      },
-      data: {
-        verifiedAt: new Date(),
-      },
-    });
-
-    await this.prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        twoFactorEnabled: true,
-      },
-    });
+    // The otp is single use, so removing it along with the 2fa update
+    await this.prisma.$transaction([
+      this.prisma.twoFactorOtp.delete({
+        where: {
+          id: otpRecord.id,
+        },
+      }),
+      this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          twoFactorEnabled: enable,
+        },
+      }),
+    ]);
   }
 }

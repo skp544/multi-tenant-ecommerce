@@ -2,6 +2,7 @@ import {
   authApi,
   type IChangePassword,
   type IUpdateUserPayload,
+  type IVerify2FAOtp,
   type LoginPayload,
 } from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -138,7 +139,7 @@ export const generate2FAOtp = createAsyncThunk(
 
 export const verify2FAOtp = createAsyncThunk(
   "auth/2fa-verify-otp",
-  async (payload: { otp: string }, { rejectWithValue }) => {
+  async (payload: IVerify2FAOtp, { rejectWithValue }) => {
     try {
       const response = await authApi.twoFAVerifyOtp(payload);
 
@@ -222,10 +223,10 @@ export const authSlice = createSlice({
       state.user = action.payload.user;
     });
 
-    // 2fa enabled
-    builder.addCase(verify2FAOtp.fulfilled, (state) => {
+    // 2fa enabled or disabled
+    builder.addCase(verify2FAOtp.fulfilled, (state, action) => {
       if (state.user) {
-        state.user.twoFactorEnabled = true;
+        state.user.twoFactorEnabled = action.meta.arg.enable;
       }
     });
   },

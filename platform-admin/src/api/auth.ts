@@ -18,6 +18,11 @@ export interface IChangePassword {
   password: string;
 }
 
+export interface IVerify2FAOtp {
+  otp: string;
+  enable: boolean;
+}
+
 export type LoginResponse = ApiResponse<{
   accessToken: string;
   refreshToken: string;
@@ -59,7 +64,7 @@ export const authApi = {
       .then((res) => res.data);
   },
 
-  twoFAVerifyOtp: async (payload: { otp: string }) => {
+  twoFAVerifyOtp: async (payload: IVerify2FAOtp) => {
     return client
       .post<SuccessResponse>("/auth/2fa-verify-otp", payload)
       .then((res) => res.data);

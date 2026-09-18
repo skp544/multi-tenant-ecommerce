@@ -51,8 +51,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('2fa-generate-otp')
   @HttpCode(HttpStatus.OK)
-  async sendEnable2FAOtp(@CurrentUser() user: JwtAccessPayload) {
-    await this.authService.sendEnable2FAOtp(user.userId);
+  async send2FAOtp(@CurrentUser() user: JwtAccessPayload) {
+    await this.authService.send2FAOtp(user.userId);
 
     return { message: 'OTP sent successfully' };
   }
@@ -64,8 +64,10 @@ export class AuthController {
     @CurrentUser() user: JwtAccessPayload,
     @Body() dto: Verify2faOtpDto,
   ) {
-    await this.authService.verify2FAOtp(user.userId, dto.otp);
+    await this.authService.verify2FAOtp(user.userId, dto.otp, dto.enable);
 
-    return { message: 'Two-factor authentication enabled successfully' };
+    return {
+      message: `Two-factor authentication ${dto.enable ? 'enabled' : 'disabled'} successfully`,
+    };
   }
 }

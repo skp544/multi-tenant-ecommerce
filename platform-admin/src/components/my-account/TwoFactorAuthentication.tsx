@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/hooks/use-store";
 import { generate2FAOtp, verify2FAOtp } from "@/store/auth/auth.slice";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "../ui/input-otp";
+import { Badge } from "../ui/badge";
 
 type Props = {
   user: User;
@@ -22,12 +23,17 @@ const TwoFactorAuthentication = ({ user }: Props) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // The same dialog enables or disables 2FA depending on the current state
+  const action = user.twoFactorEnabled ? "Disable" : "Enable";
+
   const handleVerifyOTP = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await dispatch(verify2FAOtp({ otp })).unwrap();
+      const response = await dispatch(
+        verify2FAOtp({ otp, enable: !user.twoFactorEnabled }),
+      ).unwrap();
 
       toast.success(response.message);
       setOtp("");
@@ -57,93 +63,102 @@ const TwoFactorAuthentication = ({ user }: Props) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant={"outline"}
-          className="cursor-pointer"
-          disabled={user.twoFactorEnabled}
-        >
-          {user.twoFactorEnabled ? "Enabled" : "Enable"}
-        </Button>
-      </DialogTrigger>
+    <>
+      {user.twoFactorEnabled && (
+        <Badge className="bg-primary/20 text-primary font-semibold py-2">
+          Enabled
+        </Badge>
+      )}
 
-      <DialogContent className="w-full lg:max-w-2xl min-h-28 p-4 lg:p-6">
-        {otpSend ? (
-          <>
-            <TitleHeading
-              title="Verify your email"
-              classNameTitle="font-semibold"
-              description={`Enter the 6-digit code we sent to ${user.email}.`}
-            />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button type="button" variant={"outline"} className="cursor-pointer">
+            {action}
+          </Button>
+        </DialogTrigger>
 
-            <form
-              onSubmit={handleVerifyOTP}
-              className="my-3 grid gap-4 lg:gap-6 w-full"
-            >
-              <div className="w-full flex flex-col gap-1">
-                <Label>Enter OTP</Label>
-                <InputOTP
-                  maxLength={6}
-                  value={otp}
-                  onChange={setOtp}
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  <InputOTPGroup className="w-full">
-                    <InputOTPSlot index={0} className="w-full h-14 text-lg" />
-                    <InputOTPSlot index={1} className="w-full h-14 text-lg" />
-                    <InputOTPSlot index={2} className="w-full h-14 text-lg" />
-                    <InputOTPSlot index={3} className="w-full h-14 text-lg" />
-                    <InputOTPSlot index={4} className="w-full h-14 text-lg" />
-                    <InputOTPSlot index={5} className="w-full h-14 text-lg" />
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
+        <DialogContent className="w-full lg:max-w-2xl min-h-28 p-4 lg:p-6">
+          {otpSend ? (
+            <>
+              <TitleHeading
+                title="Verify your email"
+                classNameTitle="font-semibold"
+                description={`Enter the 6-digit code we sent to ${user.email}.`}
+              />
 
-              <div className="mt-4">
-                <Button className="mx-auto block h-10" disabled={isSubmitting}>
-                  {isSubmitting ? "Verifying..." : "Verify"}
-                </Button>
-              </div>
-            </form>
-          </>
-        ) : (
-          <>
-            <TitleHeading
-              title="Enable Two-Factor Authentication"
-              classNameTitle="font-semibold"
-              description="We'll email you a one-time code to confirm it's you."
-            />
+              <form
+                onSubmit={handleVerifyOTP}
+                className="my-3 grid gap-4 lg:gap-6 w-full"
+              >
+                <div className="w-full flex flex-col gap-1">
+                  <Label>Enter OTP</Label>
+                  <InputOTP
+                    maxLength={6}
+                    value={otp}
+                    onChange={setOtp}
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    <InputOTPGroup className="w-full">
+                      <InputOTPSlot index={0} className="w-full h-14 text-lg" />
+                      <InputOTPSlot index={1} className="w-full h-14 text-lg" />
+                      <InputOTPSlot index={2} className="w-full h-14 text-lg" />
+                      <InputOTPSlot index={3} className="w-full h-14 text-lg" />
+                      <InputOTPSlot index={4} className="w-full h-14 text-lg" />
+                      <InputOTPSlot index={5} className="w-full h-14 text-lg" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="my-3 grid gap-4 lg:gap-6 w-full"
-            >
-              <div className="w-full flex flex-col gap-1">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={user.email}
-                  className="h-10"
-                  required
-                  disabled
-                />
-              </div>
+                <div className="mt-4">
+                  <Button
+                    className="mx-auto block h-10"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Verifying..." : "Verify"}
+                  </Button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <TitleHeading
+                title={`${action} Two-Factor Authentication`}
+                classNameTitle="font-semibold"
+                description="We'll email you a one-time code to confirm it's you."
+              />
 
-              <div className="mt-4">
-                <Button className="mx-auto block h-10" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending otp..." : "Send OTP"}
-                </Button>
-              </div>
-            </form>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+              <form
+                onSubmit={handleSubmit}
+                className="my-3 grid gap-4 lg:gap-6 w-full"
+              >
+                <div className="w-full flex flex-col gap-1">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={user.email}
+                    className="h-10"
+                    required
+                    disabled
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <Button
+                    className="mx-auto block h-10"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Sending otp..." : "Send OTP"}
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
