@@ -14,6 +14,7 @@ import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import type { JwtAccessPayload } from './types/jwt-payload.types.js';
 import { RefreshDTO } from './dto/refresht.dto.js';
+import { Verify2faOtpDto } from './dto/verify-2fa-otp.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -48,11 +49,23 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('2fa-generate-otp')
+  @Get('2fa-generate-otp')
   @HttpCode(HttpStatus.OK)
   async sendEnable2FAOtp(@CurrentUser() user: JwtAccessPayload) {
     await this.authService.sendEnable2FAOtp(user.userId);
 
     return { message: 'OTP sent successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa-verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async verify2FAOtp(
+    @CurrentUser() user: JwtAccessPayload,
+    @Body() dto: Verify2faOtpDto,
+  ) {
+    await this.authService.verify2FAOtp(user.userId, dto.otp);
+
+    return { message: 'Two-factor authentication enabled successfully' };
   }
 }

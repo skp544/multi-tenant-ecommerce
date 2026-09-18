@@ -136,6 +136,23 @@ export const generate2FAOtp = createAsyncThunk(
   },
 );
 
+export const verify2FAOtp = createAsyncThunk(
+  "auth/2fa-verify-otp",
+  async (payload: { otp: string }, { rejectWithValue }) => {
+    try {
+      const response = await authApi.twoFAVerifyOtp(payload);
+
+      if (!response.success) {
+        return rejectWithValue(response.message);
+      }
+
+      return { message: response.message };
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to verify otp"));
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -203,6 +220,13 @@ export const authSlice = createSlice({
     // update user
     builder.addCase(updateUser.fulfilled, (state, action) => {
       state.user = action.payload.user;
+    });
+
+    // 2fa enabled
+    builder.addCase(verify2FAOtp.fulfilled, (state) => {
+      if (state.user) {
+        state.user.twoFactorEnabled = true;
+      }
     });
   },
 });

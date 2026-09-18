@@ -55,7 +55,13 @@ export const authApi = {
 
   twoFAGenerateOtp: async () => {
     return client
-      .post<SuccessResponse>("/auth/2fa-generate-otp")
+      .get<SuccessResponse>("/auth/2fa-generate-otp")
+      .then((res) => res.data);
+  },
+
+  twoFAVerifyOtp: async (payload: { otp: string }) => {
+    return client
+      .post<SuccessResponse>("/auth/2fa-verify-otp", payload)
       .then((res) => res.data);
   },
 };

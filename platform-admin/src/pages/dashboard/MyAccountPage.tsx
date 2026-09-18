@@ -116,7 +116,7 @@ const MyAccountPage = () => {
               </div>
             </div>
             <div className="flex gap-4 items-center">
-              <TwoFactorAuthentication user={user!} />
+              {user && <TwoFactorAuthentication user={user} />}
             </div>
           </div>
         </Card>

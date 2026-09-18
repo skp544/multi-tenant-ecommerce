@@ -6,27 +6,33 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import type { User } from "@/types/user";
 import { useAppDispatch } from "@/hooks/use-store";
-import { generate2FAOtp } from "@/store/auth/auth.slice";
+import { generate2FAOtp, verify2FAOtp } from "@/store/auth/auth.slice";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "../ui/input-otp";
 
 type Props = {
   user: User;
 };
+
 const TwoFactorAuthentication = ({ user }: Props) => {
   const dispatch = useAppDispatch();
-  // const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSend, setOtpSend] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleVerifyOTP = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleVerifyOTP = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      const response = await dispatch(verify2FAOtp({ otp })).unwrap();
+
+      toast.success(response.message);
+      setOtp("");
       setOtpSend(false);
+      setOpen(false);
     } catch (error) {
       toast.error(error as string);
     } finally {
@@ -51,10 +57,15 @@ const TwoFactorAuthentication = ({ user }: Props) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant={"outline"} className="cursor-pointer">
-          Enable
+        <Button
+          type="button"
+          variant={"outline"}
+          className="cursor-pointer"
+          disabled={user.twoFactorEnabled}
+        >
+          {user.twoFactorEnabled ? "Enabled" : "Enable"}
         </Button>
       </DialogTrigger>
 

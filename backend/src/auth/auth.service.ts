@@ -21,10 +21,10 @@ import bcrypt from 'bcrypt';
 import { randomInt } from 'node:crypto';
 import { EmailService } from '../email/email.service.js';
 import {
+  OTP_MAX_ATTEMPTS,
   OTP_RESEND_COOLDOWN_SECONDS,
   OTP_TTL_MINUTES,
 } from '../constants/otp.constants.js';
-
 
 export interface LoginContext {
   ipAddress?: string;
@@ -292,5 +292,82 @@ export class AuthService {
       await this.prisma.twoFactorOtp.delete({ where: { id: otpRecord.id } });
       throw error;
     }
+  }
+
+  async verify2FAOtp(userId: string, otp: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    if (user.twoFactorEnabled) {
+      throw new BadRequestException(
+        'Two-factor authentication is already enabled.',
+      );
+    }
+
+    const otpRecord = await this.prisma.twoFactorOtp.findFirst({
+      where: {
+        userId: user.id,
+        verifiedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!otpRecord) {
+      throw new BadRequestException('OTP expired or invalid');
+    }
+
+    // Counting every attempt up front so parallel requests can't bypass the limit
+    const { attempts } = await this.prisma.twoFactorOtp.update({
+      where: {
+        id: otpRecord.id,
+      },
+      data: {
+        attempts: { increment: 1 },
+      },
+    });
+
+    if (attempts > OTP_MAX_ATTEMPTS) {
+      throw new HttpException(
+        'Too many invalid attempts. Please request a new OTP.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid OTP.');
+    }
+
+    await this.prisma.twoFactorOtp.update({
+      where: {
+        id: otpRecord.id,
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
+
+    await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        twoFactorEnabled: true,
+      },
+    });
   }
 }
