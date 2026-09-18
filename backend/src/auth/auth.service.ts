@@ -267,6 +267,11 @@ export class AuthService {
 
     const expiredAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
 
+    // Only the latest otp should be valid
+    await this.prisma.twoFactorOtp.deleteMany({
+      where: { userId: user.id, verifiedAt: null },
+    });
+
     const otpRecord = await this.prisma.twoFactorOtp.create({
       data: {
         userId: user.id,
