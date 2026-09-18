@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -16,6 +18,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcrypt';
+import { randomInt } from 'node:crypto';
+import { EmailService } from '../email/email.service.js';
+import {
+  OTP_RESEND_COOLDOWN_SECONDS,
+  OTP_TTL_MINUTES,
+} from '../constants/otp.constants.js';
+
 
 export interface LoginContext {
   ipAddress?: string;
@@ -27,6 +36,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
   async login(loginDto: LoginDTO, context: LoginContext = {}) {
     // check user exists in db
@@ -210,5 +220,72 @@ export class AuthService {
         revokedAt: new Date(),
       },
     });
+  }
+
+  async sendEnable2FAOtp(userId: string) {
+    // Checking user exists
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    if (user.twoFactorEnabled) {
+      throw new BadRequestException(
+        'Two-factor authentication is already enabled.',
+      );
+    }
+
+    // Blocking repeated requests
+
+    const recentOtp = await this.prisma.twoFactorOtp.findFirst({
+      where: {
+        userId: user.id,
+        createdAt: {
+          gt: new Date(Date.now() - OTP_RESEND_COOLDOWN_SECONDS * 1000),
+        },
+      },
+    });
+
+    if (recentOtp) {
+      throw new HttpException(
+        `Please wait ${OTP_RESEND_COOLDOWN_SECONDS} seconds before requesting another OTP.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // Generating otp
+
+    const generateOtp = randomInt(100000, 1_000_000).toString();
+
+    const otpHash = await bcrypt.hash(generateOtp, 10);
+
+    const expiredAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
+
+    const otpRecord = await this.prisma.twoFactorOtp.create({
+      data: {
+        userId: user.id,
+        otpHash: otpHash,
+        expiresAt: expiredAt,
+      },
+    });
+
+    try {
+      await this.emailService.sendOTP2FA(
+        user.fullName,
+        user.email,
+        generateOtp,
+        `${OTP_TTL_MINUTES} minutes`,
+      );
+    } catch (error) {
+      // Removing the unused otp so the user can retry without waiting
+      await this.prisma.twoFactorOtp.delete({ where: { id: otpRecord.id } });
+      throw error;
+    }
   }
 }

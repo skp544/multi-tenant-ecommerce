@@ -46,4 +46,13 @@ export class AuthController {
     await this.authService.revokeSession(user.userId, user.sid);
     return { message: 'Logged out successfully' };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa-generate-otp')
+  @HttpCode(HttpStatus.OK)
+  async sendEnable2FAOtp(@CurrentUser() user: JwtAccessPayload) {
+    await this.authService.sendEnable2FAOtp(user.userId);
+
+    return { message: 'OTP sent successfully' };
+  }
 }

@@ -44,6 +44,8 @@ model User {
   passwordResetOtps PasswordResetOtp[]
   sessions          UserSession[]
 
+  twoFactorOtps TwoFactorOtp[]
+
   @@map("users")
 }
 
@@ -74,4 +76,22 @@ model UserSession {
   revokedAt        DateTime? @map("revoked_at")
 
   @@map("user_sessions")
+}
+
+model TwoFactorOtp {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  otpHash   String   @map("otp_hash")
+  expiresAt DateTime @map("expires_at")
+
+  attempts Int @default(0)
+
+  verifiedAt DateTime? @map("verified_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([expiresAt])
 }
