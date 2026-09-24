@@ -3,6 +3,7 @@ import {
   type IChangePassword,
   type IUpdateUserPayload,
   type IVerify2FAOtp,
+  type IVerifyLogin2FA,
   type LoginPayload,
 } from "@/api/auth";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -18,6 +19,9 @@ interface AuthState {
   userType: UserType | null;
   status: AsyncStatus;
   error: string | null;
+
+  twoFactorToken: string | null;
+  requiredTwoFactor: boolean;
 }
 
 const initialState: AuthState = {
@@ -27,6 +31,9 @@ const initialState: AuthState = {
   userType: "PLATFORM_ADMIN",
   status: "idle",
   error: null,
+
+  twoFactorToken: null,
+  requiredTwoFactor: false,
 };
 
 export const fetchLogin = createAsyncThunk(
@@ -39,13 +46,49 @@ export const fetchLogin = createAsyncThunk(
         return rejectWithValue(response.message);
       }
 
+      // 2FA is on, the tokens are issued after the otp is verified
+      if ("requiredTwoFactor" in response.data) {
+        return {
+          requiredTwoFactor: true as const,
+          twoFactorToken: response.data.twoFactorToken,
+          message: response.data.message,
+        };
+      }
+
+      const { accessToken, refreshToken, userType } = response.data;
+
+      storage.setToken(accessToken, refreshToken);
+
+      return {
+        requiredTwoFactor: false as const,
+        accessToken,
+        refreshToken,
+        userType,
+        message: response.message,
+      };
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Could not sign in"));
+    }
+  },
+);
+
+export const verifyLogin2FA = createAsyncThunk(
+  "auth/login-2fa",
+  async (payload: IVerifyLogin2FA, { rejectWithValue }) => {
+    try {
+      const response = await authApi.twoFALoginVerify(payload);
+
+      if (!response.data) {
+        return rejectWithValue(response.message);
+      }
+
       const { accessToken, refreshToken, userType } = response.data;
 
       storage.setToken(accessToken, refreshToken);
 
       return { accessToken, refreshToken, userType, message: response.message };
     } catch (error) {
-      return rejectWithValue(getApiErrorMessage(error, "Could not sign in"));
+      return rejectWithValue(getApiErrorMessage(error, "Failed to verify otp"));
     }
   },
 );
@@ -161,15 +204,31 @@ export const authSlice = createSlice({
     clearAuthError: (state) => {
       state.error = null;
     },
+
+    // back to the login form from the otp step
+    clearTwoFactor: (state) => {
+      state.requiredTwoFactor = false;
+      state.twoFactorToken = null;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchLogin.pending, (state) => {
         state.status = "loading";
         state.error = null;
+        state.requiredTwoFactor = false;
+        state.twoFactorToken = null;
       })
       .addCase(fetchLogin.fulfilled, (state, action) => {
         state.status = "succeeded";
+
+        if (action.payload.requiredTwoFactor) {
+          state.requiredTwoFactor = true;
+          state.twoFactorToken = action.payload.twoFactorToken;
+          return;
+        }
+
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
         state.userType = action.payload.userType;
@@ -180,6 +239,26 @@ export const authSlice = createSlice({
         state.accessToken = null;
         state.refreshToken = null;
         state.userType = "PLATFORM_ADMIN";
+      });
+
+    // login second step, verifying the otp
+    builder
+      .addCase(verifyLogin2FA.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(verifyLogin2FA.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.userType = action.payload.userType;
+        state.requiredTwoFactor = false;
+        state.twoFactorToken = null;
+      })
+      .addCase(verifyLogin2FA.rejected, (state, action) => {
+        // keeping the two factor token so the otp can be retried
+        state.status = "failed";
+        state.error = action.payload as string;
       });
 
     // current user details
@@ -231,5 +310,7 @@ export const authSlice = createSlice({
     });
   },
 });
+
+export const { clearAuthError, clearTwoFactor } = authSlice.actions;
 
 export default authSlice.reducer;

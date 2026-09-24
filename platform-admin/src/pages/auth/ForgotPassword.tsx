@@ -8,8 +8,8 @@ import { Spinner } from "@/components/ui/spinner";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting] = useState<boolean>(false);
+  const [error] = useState<string | null>(null);
 
   const navigate = useNavigate();
 

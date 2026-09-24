@@ -25,7 +25,15 @@ const LoginPage = () => {
 
     try {
       const result = await dispatch(fetchLogin({ email, password })).unwrap();
+
       toast.success(result.message);
+
+      // With 2FA on, the tokens are issued after the otp is verified
+      if (result.requiredTwoFactor) {
+        navigate("/auth/2fa", { state: { email } });
+        return;
+      }
+
       navigate("/dashboard");
     } catch (error) {
       toast.error(error as string);

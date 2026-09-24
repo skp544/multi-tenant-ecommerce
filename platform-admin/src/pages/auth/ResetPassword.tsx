@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useState, type SubmitEvent } from "react";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useLocation } from "react-router";
 import { CheckCircle2, ShieldCheckIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -17,14 +17,12 @@ const ResetPassword = () => {
   const email = state?.email;
   const resetToken = state?.resetToken;
 
-  const navigate = useNavigate();
-
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDone, setIsDone] = useState<boolean>(true);
+  const [isDone, setIsDone] = useState<boolean>(false);
 
   const misMatch = confirmPassword.length > 0 && password !== confirmPassword;
 
@@ -37,7 +35,8 @@ const ResetPassword = () => {
 
       if (!resetToken) return setError("Something went wrong");
 
-      navigate("/auth/login");
+      // TODO: call the reset password api here
+      setIsDone(true);
     } catch (error) {
       console.error(error);
     } finally {

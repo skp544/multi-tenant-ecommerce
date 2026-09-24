@@ -15,6 +15,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import type { JwtAccessPayload } from './types/jwt-payload.types.js';
 import { RefreshDTO } from './dto/refresht.dto.js';
 import { Verify2faOtpDto } from './dto/verify-2fa-otp.dto.js';
+import { VerifyLogin2faDto } from './dto/verify-login-2fa.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,20 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDTO, @Ip() ipAddress: string) {
     const data = await this.authService.login(loginDto, { ipAddress });
+    return { data, message: 'Logged in successfully' };
+  }
+
+  @Post('/login/2fa') // /auth/login/2fa
+  @HttpCode(HttpStatus.OK)
+  async verifyLogin2FA(
+    @Body() dto: VerifyLogin2faDto,
+    @Ip() ipAddress: string,
+  ) {
+    const data = await this.authService.verifyLogin2FA(
+      dto.twoFactorToken,
+      dto.otp,
+      { ipAddress },
+    );
     return { data, message: 'Logged in successfully' };
   }
 

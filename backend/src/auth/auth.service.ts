@@ -14,6 +14,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import {
   JwtAccessPayload,
   RefreshTokenPayload,
+  TwoFactorTokenPayload,
 } from './types/jwt-payload.types.js';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +32,12 @@ export interface LoginContext {
 }
 @Injectable()
 export class AuthService {
+  // Same cost (10) as the real password hashes
+  private readonly dummyPasswordHash = bcrypt.hashSync(
+    'not-a-real-password',
+    10,
+  );
+
   constructor(
     private readonly usersService: UsersService,
     private readonly prisma: PrismaService,
@@ -42,17 +49,32 @@ export class AuthService {
     // check user exists in db
     const user = await this.usersService.findByEmail(loginDto.email);
 
-    // check status User active or not
+    // same message and same cost as a wrong password, so emails can't be
+    // enumerated by the response or by the timing
     if (!user) {
-      throw new BadRequestException('Account not found with this email.');
-    }
-
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException('Account is not active.');
+      await bcrypt.compare(loginDto.password, this.dummyPasswordHash);
+      throw new BadRequestException('Invalid email or password.');
     }
 
     // check password
     await this.checkPasswordMatchWithHash(user, loginDto.password);
+
+    // check status User active or not, after the password so it isn't leaked
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Account is not active.');
+    }
+
+    // 2FA Enabled, the tokens are issued after the otp is verified
+
+    if (user.twoFactorEnabled) {
+      const result = await this.twoFactorCreateOtpToken(user.id);
+
+      return {
+        requiredTwoFactor: true,
+        twoFactorToken: result.twoFactorToken,
+        message: result?.message || '',
+      };
+    }
 
     const token = await this.issueTokenPair(user, context);
 
@@ -237,14 +259,7 @@ export class AuthService {
 
     // Blocking repeated requests
 
-    const recentOtp = await this.prisma.twoFactorOtp.findFirst({
-      where: {
-        userId: user.id,
-        createdAt: {
-          gt: new Date(Date.now() - OTP_RESEND_COOLDOWN_SECONDS * 1000),
-        },
-      },
-    });
+    const recentOtp = await this.findRecentOtp(user.id);
 
     if (recentOtp) {
       throw new HttpException(
@@ -305,9 +320,30 @@ export class AuthService {
       );
     }
 
+    const otpRecord = await this.findValidOtp(user.id, otp);
+
+    // The otp is single use, so removing it along with the 2fa update
+    await this.prisma.$transaction([
+      this.prisma.twoFactorOtp.delete({
+        where: {
+          id: otpRecord.id,
+        },
+      }),
+      this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          twoFactorEnabled: enable,
+        },
+      }),
+    ]);
+  }
+
+  private async findValidOtp(userId: string, otp: string) {
     const otpRecord = await this.prisma.twoFactorOtp.findFirst({
       where: {
-        userId: user.id,
+        userId,
         verifiedAt: null,
         expiresAt: {
           gt: new Date(),
@@ -346,21 +382,77 @@ export class AuthService {
       throw new BadRequestException('Invalid OTP.');
     }
 
-    // The otp is single use, so removing it along with the 2fa update
-    await this.prisma.$transaction([
-      this.prisma.twoFactorOtp.delete({
-        where: {
-          id: otpRecord.id,
+    return otpRecord;
+  }
+
+  // second step of the login, verifying the otp sent by the login
+
+  async verifyLogin2FA(
+    twoFactorToken: string,
+    otp: string,
+    context: LoginContext = {},
+  ) {
+    let decoded: TwoFactorTokenPayload;
+
+    try {
+      decoded = this.jwt.verify<TwoFactorTokenPayload>(twoFactorToken, {
+        secret: this.config.getOrThrow<string>('JWT_2FA_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Two-factor session expired.');
+    }
+
+    const user = await this.usersService.findById(decoded.userId);
+
+    if (!user || user.status !== UserStatus.ACTIVE || !user.twoFactorEnabled) {
+      throw new UnauthorizedException('Two-factor session expired.');
+    }
+
+    const otpRecord = await this.findValidOtp(user.id, otp);
+
+    // The otp is single use
+    await this.prisma.twoFactorOtp.delete({ where: { id: otpRecord.id } });
+
+    const token = await this.issueTokenPair(user, context);
+
+    return { ...token, userType: user.userType };
+  }
+
+  // at the time of login sending the otp
+
+  async twoFactorCreateOtpToken(userId: string) {
+    const twoFactorTokenPayload: TwoFactorTokenPayload = { userId };
+
+    const twoFactorToken = this.jwt.sign(twoFactorTokenPayload, {
+      secret: this.config.getOrThrow<string>('JWT_2FA_SECRET'),
+      expiresIn: this.config.get('JWT_2FA_EXPIRES_IN', '15m'),
+    });
+
+    // A new otp resets the attempt limit, so inside the cooldown the earlier
+    // one stays valid instead of sending another
+    if (await this.findRecentOtp(userId)) {
+      return {
+        twoFactorToken,
+        message: 'A code was already sent to your email. Please use it.',
+      };
+    }
+
+    await this.send2FAOtp(userId);
+
+    return {
+      twoFactorToken,
+      message: 'OTP sent successfully!',
+    };
+  }
+
+  private findRecentOtp(userId: string) {
+    return this.prisma.twoFactorOtp.findFirst({
+      where: {
+        userId,
+        createdAt: {
+          gt: new Date(Date.now() - OTP_RESEND_COOLDOWN_SECONDS * 1000),
         },
-      }),
-      this.prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          twoFactorEnabled: enable,
-        },
-      }),
-    ]);
+      },
+    });
   }
 }

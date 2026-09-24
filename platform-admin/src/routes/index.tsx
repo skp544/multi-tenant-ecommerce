@@ -5,6 +5,7 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import LoginPage from "@/pages/auth/LoginPage";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import VerifyForgotOtp from "@/pages/auth/VerifyForgotOtp";
+import VerifyTwoFactor from "@/pages/auth/VerifyTwoFactor";
 import CommissionPayouts from "@/pages/dashboard/CommissionPayouts";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import MyAccountPage from "@/pages/dashboard/MyAccountPage";
@@ -19,6 +20,7 @@ export default function Routers() {
 
       <Route path="auth" element={<AuthLayout />}>
         <Route path="login" element={<LoginPage />} />
+        <Route path="2fa" element={<VerifyTwoFactor />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="forgot-password/verify" element={<VerifyForgotOtp />} />
         <Route path="reset-password" element={<ResetPassword />} />

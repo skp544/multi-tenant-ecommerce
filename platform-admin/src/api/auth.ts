@@ -1,7 +1,6 @@
 import { client } from "@/lib/axios";
 import type { User, UserType } from "@/types/user";
 import type { ApiResponse } from "@/types/common";
-import ChangePassword from "@/components/my-account/ChangePassword";
 
 export interface LoginPayload {
   email: string;
@@ -23,11 +22,27 @@ export interface IVerify2FAOtp {
   enable: boolean;
 }
 
-export type LoginResponse = ApiResponse<{
+export interface IVerifyLogin2FA {
+  twoFactorToken: string;
+  otp: string;
+}
+
+export interface LoginTokens {
   accessToken: string;
   refreshToken: string;
   userType: UserType;
-}>;
+}
+
+export interface TwoFactorRequired {
+  requiredTwoFactor: true;
+  twoFactorToken: string;
+  message: string;
+}
+
+// with 2FA on, login only returns the two factor token, tokens come after the otp
+export type LoginResponse = ApiResponse<LoginTokens | TwoFactorRequired>;
+
+export type VerifyLogin2FAResponse = ApiResponse<LoginTokens>;
 
 export type MeResponse = ApiResponse<User>;
 
@@ -37,6 +52,12 @@ export const authApi = {
   login: async (payload: LoginPayload) => {
     return client
       .post<LoginResponse>("/auth/login", payload)
+      .then((res) => res.data);
+  },
+
+  twoFALoginVerify: async (payload: IVerifyLogin2FA) => {
+    return client
+      .post<VerifyLogin2FAResponse>("/auth/login/2fa", payload)
       .then((res) => res.data);
   },
 
