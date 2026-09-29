@@ -24,4 +24,15 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+
+export interface ISessions {
+  id: string;
+  deviceLabel: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  lastActiveAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
+}

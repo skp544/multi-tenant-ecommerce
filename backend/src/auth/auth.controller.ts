@@ -93,19 +93,17 @@ export class AuthController {
   async sessions(@CurrentUser() user: JwtAccessPayload) {
     const sessions = await this.authService.listSessions(user.userId);
 
-    return {
-      data: sessions.map((session) => {
-        return {
-          id: session.id,
-          deviceLabel: session.deviceLabel,
-          ipAddress: session.ipAddress,
-          // location: session?.location,
-          createdAt: session.createdAt,
-          lastActiveAt: session.lastActiveAt,
-          expiresAt: session.expiresAt,
-          isCurrent: session.id === user.sid,
-        };
-      }),
-    };
+    return sessions.map((session) => {
+      return {
+        id: session.id,
+        deviceLabel: session.deviceLabel,
+        ipAddress: session.ipAddress,
+        // location: session?.location,
+        createdAt: session.createdAt,
+        lastActiveAt: session.lastActiveAt,
+        expiresAt: session.expiresAt,
+        isCurrent: session.id === user.sid,
+      };
+    });
   }
 }

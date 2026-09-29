@@ -1,5 +1,5 @@
 import { client } from "@/lib/axios";
-import type { User, UserType } from "@/types/user";
+import type { ISessions, User, UserType } from "@/types/user";
 import type { ApiResponse } from "@/types/common";
 
 export interface LoginPayload {
@@ -48,6 +48,8 @@ export type MeResponse = ApiResponse<User>;
 
 export type SuccessResponse = ApiResponse<null>;
 
+export type GetSessionResponse = ApiResponse<ISessions[]>;
+
 export const authApi = {
   login: async (payload: LoginPayload) => {
     return client
@@ -88,6 +90,12 @@ export const authApi = {
   twoFAVerifyOtp: async (payload: IVerify2FAOtp) => {
     return client
       .post<SuccessResponse>("/auth/2fa-verify-otp", payload)
+      .then((res) => res.data);
+  },
+
+  sessions: async () => {
+    return client
+      .get<GetSessionResponse>("/auth/sessions")
       .then((res) => res.data);
   },
 };

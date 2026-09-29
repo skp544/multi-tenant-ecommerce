@@ -9,7 +9,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api-error";
 import { storage } from "@/lib/storage";
 import type { AsyncStatus } from "@/types/common";
-import type { User, UserType } from "@/types/user";
+import type { ISessions, User, UserType } from "@/types/user";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface AuthState {
@@ -22,6 +22,8 @@ interface AuthState {
 
   twoFactorToken: string | null;
   requiredTwoFactor: boolean;
+
+  sessions: ISessions[];
 }
 
 const initialState: AuthState = {
@@ -34,6 +36,8 @@ const initialState: AuthState = {
 
   twoFactorToken: null,
   requiredTwoFactor: false,
+
+  sessions: [],
 };
 
 export const fetchLogin = createAsyncThunk(
@@ -197,6 +201,23 @@ export const verify2FAOtp = createAsyncThunk(
   },
 );
 
+export const fetchSessions = createAsyncThunk(
+  "auth/sessions",
+  async (_payload, { rejectWithValue }) => {
+    try {
+      const response = await authApi.sessions();
+
+      if (!response.data) {
+        return rejectWithValue(response.message);
+      }
+
+      return response.data ?? [];
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, "Failed to fetch"));
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -307,6 +328,11 @@ export const authSlice = createSlice({
       if (state.user) {
         state.user.twoFactorEnabled = action.meta.arg.enable;
       }
+    });
+
+    // active sessions, not touching status since ProtectedRoute reads it
+    builder.addCase(fetchSessions.fulfilled, (state, action) => {
+      state.sessions = action.payload;
     });
   },
 });

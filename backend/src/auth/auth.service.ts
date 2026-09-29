@@ -461,6 +461,7 @@ export class AuthService {
       where: {
         userId,
         revokedAt: null,
+        expiresAt: { gt: new Date() },
       },
       orderBy: {
         lastActiveAt: 'desc',

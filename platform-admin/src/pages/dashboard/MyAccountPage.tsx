@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useAppSelector } from "@/hooks/use-store";
 import { getAvatarName } from "@/lib";
 import { ArrowRight } from "lucide-react";
+import SessionCard from "@/components/my-account/SessionCard";
 
 const MyAccountPage = () => {
   const user = useAppSelector((state) => state.auth.user);
@@ -20,7 +21,7 @@ const MyAccountPage = () => {
         description={`Your profile, password, two-factor authentication, and where you're currently signed in.`}
       />
 
-      <div className="space-y-4 space-x-4 mt-4 lg:mt-6">
+      <div className="space-y-4 mt-4 lg:mt-6">
         {/* User details and roles */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -122,16 +123,7 @@ const MyAccountPage = () => {
         </Card>
 
         {/* Session details */}
-        <div>
-          <Card className="p-4 lg:p-6 min-h-52">
-            <TitleHeading
-              title="Active Sessions"
-              description="3 Devices signed in"
-              className="flex justify-between gap-4"
-              classNameTitle="font-medium text-base "
-            />
-          </Card>
-        </div>
+        <SessionCard />
       </div>
     </div>
   );

@@ -65,7 +65,7 @@ const DashboardLayout = () => {
               </Popover>
             </div>
           </header>
-          <div className="p-4 lg:p-6 min-h-[calc(100vh-64px)] h-[calc(100vh-64px)] container mx-auto">
+          <div className="p-4 lg:p-6 min-h-[calc(100vh-64px)] container mx-auto">
             <Outlet />
           </div>
         </main>
