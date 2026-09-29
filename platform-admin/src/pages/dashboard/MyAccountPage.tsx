@@ -122,6 +122,16 @@ const MyAccountPage = () => {
         </Card>
 
         {/* Session details */}
+        <div>
+          <Card className="p-4 lg:p-6 min-h-52">
+            <TitleHeading
+              title="Active Sessions"
+              description="3 Devices signed in"
+              className="flex justify-between gap-4"
+              classNameTitle="font-medium text-base "
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );

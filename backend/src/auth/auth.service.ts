@@ -455,4 +455,18 @@ export class AuthService {
       },
     });
   }
+
+  async listSessions(userId: string) {
+    const data = await this.prisma.userSession.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      orderBy: {
+        lastActiveAt: 'desc',
+      },
+    });
+
+    return data;
+  }
 }
