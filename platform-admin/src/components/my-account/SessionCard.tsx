@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Monitor } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/hooks/use-store";
 import { fetchSessions } from "@/store/auth/auth.slice";
 import TitleHeading from "../common/TitleHeading";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { getRelativeTime } from "@/lib";
 
 const SessionCard = () => {
   const dispatch = useAppDispatch();
@@ -39,28 +41,32 @@ const SessionCard = () => {
         {sessionsLoading ? (
           <Skeleton className="h-12 w-full" />
         ) : (
-          sessions.slice(0, 5).map((session) => (
+          sessions.slice(0, 5).map((session, index) => (
             <div key={session.id}>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Monitor className="size-5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">
-                      {session.deviceLabel ?? "Unknown device"}
-                      {session.isCurrent && (
-                        <span className="ml-2 bg-primary/20 text-primary font-semibold px-2 py-0.5 text-xs rounded-full">
-                          This device
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {session.ipAddress ?? "Unknown IP"} · Last active{" "}
-                      {new Date(session.lastActiveAt).toLocaleString()}
-                    </div>
-                  </div>
+              {index > 0 && <div className="border-t mb-3" />}
+              <div className="flex justify-between ">
+                {/* device details */}
+                <div>
+                  <p className="font-semibold">{session.deviceLabel}</p>
+                  <p className="">{getRelativeTime(session.lastActiveAt)}</p>
+                </div>
+                {/* <Button /> */}
+                <div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Revoke</Button>
+                    </DialogTrigger>
+
+                    <DialogContent className="w-full lg:max-w-2xl min-h-28 p-4 lg:p-6">
+                      <TitleHeading
+                        title="Revoke Session"
+                        classNameTitle="font-semibold "
+                        description=""
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
-              <div className="border-b mt-3" />
             </div>
           ))
         )}

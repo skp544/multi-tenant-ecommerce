@@ -25,6 +25,17 @@ export type RefreshTokenResponse = ApiResponse<{
   refreshToken: string;
 }>;
 
+// Parallel 401s share one refresh call, the refresh token is single use
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  refreshPromise ??= fetchRefreshToken().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+}
+
 async function fetchRefreshToken(): Promise<string> {
   const refreshToken = storage.getRefreshToken();
 
@@ -73,7 +84,7 @@ client.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const newAccessToken = await fetchRefreshToken();
+      const newAccessToken = await refreshAccessToken();
 
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       return client.request(originalRequest);

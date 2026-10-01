@@ -98,32 +98,8 @@ export class AuthService {
       },
     });
 
-    const accessTokenPayload: JwtAccessPayload = {
-      userId: user.id,
-      email: user.email,
-      userType: user.userType,
-      sid: session.id,
-    };
-
-    const refreshTokenPayload: RefreshTokenPayload = {
-      userId: user.id,
-      sessionId: session.id,
-    };
-
-    // Create token
-
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwt.sign(accessTokenPayload, {
-        secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        expiresIn: this.config.get('JWT_ACCESS_EXPIRES_IN', '15m'),
-      }),
-      this.jwt.sign(refreshTokenPayload, {
-        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.config.get('JWT_REFRESH_EXPIRES_IN', '30d'),
-      }),
-    ]);
-
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    const { accessToken, refreshToken, refreshTokenHash } =
+      await this.signTokens(user, session.id);
 
     // Update in DB
 
@@ -142,6 +118,37 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  private async signTokens(user: User, sessionId: string) {
+    const accessTokenPayload: JwtAccessPayload = {
+      userId: user.id,
+      email: user.email,
+      userType: user.userType,
+      sid: sessionId,
+    };
+
+    const refreshTokenPayload: RefreshTokenPayload = {
+      userId: user.id,
+      sessionId,
+    };
+
+    // Create token
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwt.sign(accessTokenPayload, {
+        secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        expiresIn: this.config.get('JWT_ACCESS_EXPIRES_IN', '15m'),
+      }),
+      this.jwt.sign(refreshTokenPayload, {
+        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.config.get('JWT_REFRESH_EXPIRES_IN', '30d'),
+      }),
+    ]);
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+
+    return { accessToken, refreshToken, refreshTokenHash };
   }
 
   private async checkPasswordMatchWithHash(
@@ -201,16 +208,32 @@ export class AuthService {
       throw new UnauthorizedException('User not found.');
     }
 
-    await this.prisma.userSession.update({
+    // A refresh keeps the same session (same device), only the token rotates
+    const tokens = await this.signTokens(user, session.id);
+
+    // Matching on the old hash makes the rotation atomic, so parallel
+    // refreshes with the same token can't both succeed
+    const rotated = await this.prisma.userSession.updateMany({
       where: {
         id: session.id,
+        refreshTokenHash: session.refreshTokenHash,
+        revokedAt: null,
       },
-      data: { revokedAt: new Date() },
+      data: {
+        refreshTokenHash: tokens.refreshTokenHash,
+        lastActiveAt: new Date(),
+        ...(context.ipAddress && { ipAddress: context.ipAddress }),
+      },
     });
 
-    return this.issueTokenPair(user, {
-      ipAddress: context?.ipAddress,
-    });
+    if (rotated.count === 0) {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
   }
 
   private verifyRefreshToken(refreshToken: string): RefreshTokenPayload {
