@@ -31,6 +31,9 @@ export interface ISessions {
   id: string;
   deviceLabel: string | null;
   ipAddress: string | null;
+  browser: string | null;
+  os: string | null;
+  device: string | null;
   createdAt: string;
   lastActiveAt: string;
   expiresAt: string;

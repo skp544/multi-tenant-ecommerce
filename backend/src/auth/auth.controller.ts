@@ -16,6 +16,10 @@ import type { JwtAccessPayload } from './types/jwt-payload.types.js';
 import { RefreshDTO } from './dto/refresht.dto.js';
 import { Verify2faOtpDto } from './dto/verify-2fa-otp.dto.js';
 import { VerifyLogin2faDto } from './dto/verify-login-2fa.dto.js';
+import {
+  ParsedUserAgent,
+  type ClientInfo,
+} from '../common/decorators/user-agent.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -23,8 +27,15 @@ export class AuthController {
 
   @Post('/login') // /auth/login
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDTO, @Ip() ipAddress: string) {
-    const data = await this.authService.login(loginDto, { ipAddress });
+  async login(
+    @Body() loginDto: LoginDTO,
+    @Ip() ipAddress: string,
+    @ParsedUserAgent() client: ClientInfo,
+  ) {
+    const data = await this.authService.login(loginDto, {
+      ipAddress,
+      ...client,
+    });
     return { data, message: 'Logged in successfully' };
   }
 
@@ -33,11 +44,12 @@ export class AuthController {
   async verifyLogin2FA(
     @Body() dto: VerifyLogin2faDto,
     @Ip() ipAddress: string,
+    @ParsedUserAgent() client: ClientInfo,
   ) {
     const data = await this.authService.verifyLogin2FA(
       dto.twoFactorToken,
       dto.otp,
-      { ipAddress },
+      { ipAddress, ...client },
     );
     return { data, message: 'Logged in successfully' };
   }
@@ -98,6 +110,9 @@ export class AuthController {
         id: session.id,
         deviceLabel: session.deviceLabel,
         ipAddress: session.ipAddress,
+        browser: session.browser,
+        os: session.os,
+        device: session.device,
         // location: session?.location,
         createdAt: session.createdAt,
         lastActiveAt: session.lastActiveAt,

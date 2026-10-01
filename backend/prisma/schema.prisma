@@ -75,6 +75,10 @@ model UserSession {
   expiresAt        DateTime  @map("expires_at")
   revokedAt        DateTime? @map("revoked_at")
 
+  os      String? @map("os")
+  device  String? @map("device")
+  browser String? @map("browser")
+
   @@map("user_sessions")
 }
 

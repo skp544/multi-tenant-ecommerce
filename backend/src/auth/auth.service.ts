@@ -26,10 +26,20 @@ import {
   OTP_RESEND_COOLDOWN_SECONDS,
   OTP_TTL_MINUTES,
 } from '../constants/otp.constants.js';
+import type { ClientInfo } from '../common/decorators/user-agent.decorator.js';
 
-export interface LoginContext {
+export interface LoginContext extends ClientInfo {
   ipAddress?: string;
 }
+
+// "iPhone" on phones, "Chrome on Windows" on desktops
+function buildDeviceLabel({ browser, os, device }: ClientInfo): string {
+  if (device) return device;
+  if (browser && os) return `${browser} on ${os}`;
+
+  return browser ?? os ?? 'Unknown device';
+}
+
 @Injectable()
 export class AuthService {
   // Same cost (10) as the real password hashes
@@ -91,10 +101,13 @@ export class AuthService {
     const session = await this.prisma.userSession.create({
       data: {
         userId: user.id,
-        deviceLabel: 'Untitled',
+        deviceLabel: buildDeviceLabel(context),
         ipAddress: context.ipAddress ?? '',
         refreshTokenHash: '',
         expiresAt: expiredAt,
+        os: context.os,
+        browser: context.browser,
+        device: context.device,
       },
     });
 
